@@ -1,0 +1,25 @@
+{
+  "name": "cryptojs-tester",
+  "version": "1.0.0",
+  "description": "CryptoJS tester",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/docbull/cryptojs-tester.git"
+  },
+  "keywords": [
+    "crypto-js"
+  ],
+  "author": "Docbull Watson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/docbull/cryptojs-tester/issues"
+  },
+  "homepage": "https://github.com/docbull/cryptojs-tester#readme",
+  "dependencies": {
+    "crypto-js": "^4.1.1"
+  }
+}
