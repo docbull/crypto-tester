@@ -17,8 +17,10 @@ var FileReader = require("filereader")
 // }
 
 function convertWordArrayToUint8Array(wordArray) {
-  var arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : [];
-  var length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4;
+  // var arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : [];
+  var arrayOfWords = wordArray.words;
+  // var length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4;
+  var length = wordArray.sigBytes;
   var uInt8Array = new Uint8Array(length), index=0, word, i;
   for (i=0; i<length; i++) {
       word = arrayOfWords[i];
@@ -33,15 +35,25 @@ function convertWordArrayToUint8Array(wordArray) {
 async function test() {
   const key = "INLab"
 
-  let file = fs.readFileSync("./master0.ts");
+  let file = fs.readFileSync("./text.txt");
   console.log(file);
+  console.log("🧙‍♂️ Original file size:", file.length);
   let content = CryptoJS.lib.WordArray.create(file);
-  let decrypted = CryptoJS.AES.encrypt(content, key, {
+  let encrypted = CryptoJS.AES.encrypt(content, key, {
     mode: CryptoJS.mode.ECB,
     padding: CryptoJS.pad.Pkcs7
   });
-  const result = convertWordArrayToUint8Array(decrypted.ciphertext);
+  console.log(encrypted);
+  let res = encrypted.toString();
+  const result = convertWordArrayToUint8Array(encrypted.ciphertext);
   console.log(result);
+  console.log("🧙‍♂️ Encrypted file size:", result.length);
+
+  var decrypted = CryptoJS.AES.decrypt(res, key);
+  console.log(decrypted);
+  // var typedArray = convertWordArrayToUint8Array(decrypted);
+  // console.log(typedArray);
+
   // let fileReader = new FileReader();
   // fileReader.readAsArrayBuffer("./tester.sh");
   // fileReader.onload = () => {
@@ -63,13 +75,13 @@ async function test() {
   // };
 }
 
-// Encrypt
-var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123').toString();
+// // Encrypt
+// var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123').toString();
 
-// Decrypt
-var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
-var originalText = bytes.toString(CryptoJS.enc.Utf8);
+// // Decrypt
+// var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
+// var originalText = bytes.toString(CryptoJS.enc.Utf8);
 
-console.log(originalText); // 'my message'
+// console.log(originalText); // 'my message'
 
 test();
