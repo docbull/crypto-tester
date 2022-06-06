@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/docbull/cryptojs-tester#readme",
   "dependencies": {
-    "crypto-js": "^4.1.1"
+    "crypto-js": "^4.1.1",
+    "filereader": "^0.10.3"
   }
 }
