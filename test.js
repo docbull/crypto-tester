@@ -1,41 +1,69 @@
-// crypto module
 const crypto = require("crypto");
 const fs = require('fs');
+const path = require('path');
 
-const algorithm = "aes-256-cbc"; 
+const algorithm = "aes-256-cbc";
+const password = "docbullwatson";
 
-// generate 16 bytes of random data
-const initVector = crypto.randomBytes(16);
+function encrypt(buffer) {
+    var cipher = crypto.createCipher(algorithm, password);
+    var crypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+    return crypted;
+}
 
-let file = fs.readFileSync("./data/raw_chunks/master5.ts");
-console.log(file);
-console.log("file length:", file.length);
-console.log("string length:", file.toString().length);
+function decrypt(buffer) {
+    var decipher = crypto.createDecipher(algorithm, password);
+    var dec = Buffer.concat([decipher.update(buffer), decipher.final()]);
+    return dec;
+}
 
-// secret key generate 32 bytes of random data
-const Securitykey = crypto.randomBytes(32);
+async function encryptVideoChunks(inputPath, outputPath) {
+    fs.readdir(path.join(inputPath), (err, files) => {
+        if (files) {
+            console.log("🚀 Start to encrypt video chunks!");
+            files.forEach(fileName => {
+                let chunk = fs.readFileSync(`${inputPath}/${fileName}`);
+                console.log(chunk);
+                console.log("🗂  chunk length:", chunk.length);
 
-// the cipher function
-const cipher = crypto.createCipheriv(algorithm, Securitykey, initVector);
+                var encrypted = encrypt(chunk);
+                console.log("🎁 encrypted chunk legnth:", encrypted.length);
+                try {
+                    fs.writeFileSync(`${outputPath}/${fileName}`, encrypted);
+                } catch (err) {
+                    console.error(err);
+                }
+            })
+            console.log("********** CHUNKS ARE ENCRYPTED **********");
+            console.log("😀 It finished to encrypt all chunks in the directory.");
+        }
+    })
+}
 
-// encrypt the message
-// input encoding
-// output encoding
-let encryptedData = cipher.update(file, "utf-8", "hex");
+async function decryptVideoChunks(inputPath, outputPath) {
+    fs.readdir(path.join(inputPath), (err, files) => {
+        if (files) {
+            console.log("...");
+            console.log("🚀 Start to decrypt encrypted chunks!");
+            files.forEach(fileName => {
+                let encryptedChunk = fs.readFileSync(`${inputPath}/${fileName}`);
+                console.log(encryptedChunk);
+                console.log("🎁 encrypted chunk length:", encryptedChunk.length);
 
-encryptedData += cipher.final("hex");
+                var decrypted = decrypt(encryptedChunk);
+                console.log("🗂  decrypted chunk legnth:", decrypted.length);
+                try {
+                    fs.writeFileSync(`${outputPath}/${fileName}`, decrypted);
+                } catch (err) {
+                    console.error(err);
+                }
+            })
+            console.log("********** CHUNKS ARE DECRYPTED **********");
+            console.log("😎 Now it finished to decrypt all encrypted chunks. You can compare the chunks using diff command in ubuntu.");
+        }
+    })
+}
 
-// console.log("Encrypted message: " + encryptedData);
-console.log("Encrypted file length:", encryptedData.length);
+encryptVideoChunks('./data/raw_chunks', './data/encrypted_chunks');
 
-// the decipher function
-const decipher = crypto.createDecipheriv(algorithm, Securitykey, initVector);
-
-let decryptedData = decipher.update(encryptedData, "hex", "utf-8");
-
-decryptedData += decipher.final("utf8");
-
-// console.log("Decrypted message: " + decryptedData);
-console.log("Dcrypted file length (string):", decryptedData.length);
-var buf = Buffer.from(decryptedData, 'utf8');
-console.log("Dcrypted file length (Buffer):", buf.length);
+decryptVideoChunks('./data/encrypted_chunks', './data/decrypted_chunks');
