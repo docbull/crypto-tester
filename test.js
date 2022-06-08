@@ -1,87 +1,41 @@
-var CryptoJS = require("crypto-js");
-var fs = require("fs");
-var FileReader = require("filereader")
+// crypto module
+const crypto = require("crypto");
+const fs = require('fs');
 
-// function encrypt(input) {
-//   var file = input.files[0];
-//   var reader = new FileReader();
-//   reader.onload = () => {
-//     var key = "INLab";
-//     var wordArray = CryptoJS.lib.WordArray.create(reader.result);
-//     var encrypted = CryptoJS.AES.encrypt(wordArray, key).toString();
+const algorithm = "aes-256-cbc"; 
 
-//     var fileEnc = new Blob([encrypted]);
-  
+// generate 16 bytes of random data
+const initVector = crypto.randomBytes(16);
 
-//   }
-// }
+let file = fs.readFileSync("./data/raw_chunks/master5.ts");
+console.log(file);
+console.log("file length:", file.length);
+console.log("string length:", file.toString().length);
 
-function convertWordArrayToUint8Array(wordArray) {
-  // var arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : [];
-  var arrayOfWords = wordArray.words;
-  // var length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4;
-  var length = wordArray.sigBytes;
-  var uInt8Array = new Uint8Array(length), index=0, word, i;
-  for (i=0; i<length; i++) {
-      word = arrayOfWords[i];
-      uInt8Array[index++] = word >> 24;
-      uInt8Array[index++] = (word >> 16) & 0xff;
-      uInt8Array[index++] = (word >> 8) & 0xff;
-      uInt8Array[index++] = word & 0xff;
-  }
-  return uInt8Array;
-}
+// secret key generate 32 bytes of random data
+const Securitykey = crypto.randomBytes(32);
 
-async function test() {
-  const key = "INLab"
+// the cipher function
+const cipher = crypto.createCipheriv(algorithm, Securitykey, initVector);
 
-  let file = fs.readFileSync("./text.txt");
-  console.log(file);
-  console.log("🧙‍♂️ Original file size:", file.length);
-  let content = CryptoJS.lib.WordArray.create(file);
-  let encrypted = CryptoJS.AES.encrypt(content, key, {
-    mode: CryptoJS.mode.ECB,
-    padding: CryptoJS.pad.Pkcs7
-  });
-  console.log(encrypted);
-  let res = encrypted.toString();
-  const result = convertWordArrayToUint8Array(encrypted.ciphertext);
-  console.log(result);
-  console.log("🧙‍♂️ Encrypted file size:", result.length);
+// encrypt the message
+// input encoding
+// output encoding
+let encryptedData = cipher.update(file, "utf-8", "hex");
 
-  var decrypted = CryptoJS.AES.decrypt(res, key);
-  console.log(decrypted);
-  // var typedArray = convertWordArrayToUint8Array(decrypted);
-  // console.log(typedArray);
+encryptedData += cipher.final("hex");
 
-  // let fileReader = new FileReader();
-  // fileReader.readAsArrayBuffer("./tester.sh");
-  // fileReader.onload = () => {
-  //   try {
-  //       console.log('peter big size ' + fileReader.result);
-  //       // 下面这行大文件会崩溃，如何做分片
-  //       // down line crash when file very big size
-  //       let content = CryptoJS.lib.WordArray.create(fileReader.result);
-  //       let decrypted = CryptoJS.AES.encrypt(content, key, {
-  //           mode: CryptoJS.mode.ECB,
-  //           padding: CryptoJS.pad.Pkcs7
-  //       });
-  //       const result = convertWordArrayToUint8Array(decrypted.ciphertext);
-  //       let fileDecBlob = new Blob([result]);
-  //       callback(fileDecBlob, result);
-  //   } catch (e) {
-  //       console.log("peter fail", e);
-  //   }
-  // };
-}
+// console.log("Encrypted message: " + encryptedData);
+console.log("Encrypted file length:", encryptedData.length);
 
-// // Encrypt
-// var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123').toString();
+// the decipher function
+const decipher = crypto.createDecipheriv(algorithm, Securitykey, initVector);
 
-// // Decrypt
-// var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
-// var originalText = bytes.toString(CryptoJS.enc.Utf8);
+let decryptedData = decipher.update(encryptedData, "hex", "utf-8");
 
-// console.log(originalText); // 'my message'
+decryptedData += decipher.final("utf8");
 
-test();
+// console.log("Decrypted message: " + decryptedData);
+console.log("Dcrypted file length (string):", decryptedData.length);
+var buf = Buffer.from(decryptedData, 'utf8');
+console.log("Dcrypted file length (Buffer):", buf.length);
