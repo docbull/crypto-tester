@@ -65,5 +65,4 @@ async function decryptVideoChunks(inputPath, outputPath) {
 }
 
 encryptVideoChunks('./data/raw_chunks', './data/encrypted_chunks');
-
 decryptVideoChunks('./data/encrypted_chunks', './data/decrypted_chunks');
